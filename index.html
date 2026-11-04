@@ -838,28 +838,37 @@
     </script>
 </body>
 </html>
-window.addEventListener('DOMContentLoaded', async () => {
-  // Verifica se o localStorage já possui dados; se estiver vazio, busca o CSV remoto do GitHub
-  if (!localStorage.getItem('fin7_dados_contas')) {
-    try {
-      const resposta = await fetch('./Contas.csv');
-      if (resposta.ok) {
-        const textoCSV = await resposta.text();
-        
-        // Converte o CSV em objetos usando o SheetJS que já está no seu projeto
-        const workbook = XLSX.read(textoCSV, { type: 'string' });
-        const primeiraAba = workbook.SheetNames[0];
-        const dadosJson = XLSX.utils.sheet_to_json(workbook.Sheets[primeiraAba]);
-        
-        // Salva automaticamente no localStorage do dispositivo
-        localStorage.setItem('fin7_dados_contas', JSON.stringify(dadosJson));
-        
-        // Recarrega as tabelas e gráficos da tela
-        if (typeof renderizarTabelaContas === 'function') renderizarTabelaContas();
-        if (typeof atualizarDashboard === 'function') atualizarDashboard();
-      }
-    } catch (erro) {
-      console.error("Erro ao carregar o CSV padrão:", erro);
-    }
+async function carregarDadosDoGoogleDrive() {
+  // Substitua abaixo pelo link gerado no "Publicar na Web" do Google Sheets
+  const urlCSV = 'https://docs.google.com/spreadsheets/d/SEU_ID_DA_PLANILHA/export?format=csv';
+
+  try {
+    const resposta = await fetch(urlCSV);
+    if (!resposta.ok) throw new Error('Não foi possível aceder à planilha no Drive.');
+
+    const textoCSV = await resposta.text();
+
+    // Utiliza o SheetJS para converter o CSV em formato que o Fin7 entende
+    const workbook = XLSX.read(textoCSV, { type: 'string' });
+    const primeiraAba = workbook.SheetNames[0];
+    const dadosJson = XLSX.utils.sheet_to_json(workbook.Sheets[primeiraAba]);
+
+    // Atualiza o localStorage com os dados mais recentes da nuvem
+    localStorage.setItem('fin7_dados_contas', JSON.stringify(dadosJson));
+
+    console.log("Dados sincronizados com sucesso a partir do Google Drive!");
+    
+    // Atualiza a interface da aplicação
+    if (typeof renderizarTabelas === 'function') renderizarTabelas();
+    if (typeof atualizarDashboard === 'function') atualizarDashboard();
+
+  } catch (erro) {
+    console.error("Erro na sincronização com o Drive:", erro);
+    // Caso esteja offline, o sistema continuará a usar a última versão salva no localStorage
   }
+}
+
+// Executa a função assim que a página é aberta
+window.addEventListener('DOMContentLoaded', () => {
+  carregarDadosDoGoogleDrive();
 });
