@@ -75,7 +75,7 @@
             <div id="aba-dashboard" class="space-y-6 hidden">
                 <div class="bg-[#141414] border border-[#332B13] p-4 rounded-xl text-[#D4AF37] text-xs flex items-center gap-3">
                     <i class="fa-solid fa-circle-info text-base"></i>
-                    <span>Utilize os menus laterais para gerenciar os dados. <b>Armazenamento local automático ativado</b>.</span>
+                    <span>Utilize os menus laterais para gerenciar os dados. <b>Sincronização automática via GitHub ativada</b>.</span>
                 </div>
             </div>
 
@@ -105,8 +105,8 @@
                             </select>
                         </div>
                     </div>
-                    <button onclick="limparDadosFluxo()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-trash-can"></i> Limpar Dados
+                    <button onclick="carregarDadosGitHub()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Atualizar Dados
                     </button>
                 </div>
 
@@ -143,7 +143,7 @@
                             <tr><th class="p-3">Data</th><th class="p-3">Tipo</th><th class="p-3">Descrição</th><th class="p-3 text-right">Valor</th></tr>
                         </thead>
                         <tbody id="tabela-fluxo" class="divide-y divide-[#1F1F1F]">
-                            <tr><td colspan="4" class="p-4 text-center text-[#737373]">Carregue as planilhas de Fluxo de Caixa.</td></tr>
+                            <tr><td colspan="4" class="p-4 text-center text-[#737373]">A carregar dados do GitHub...</td></tr>
                         </tbody>
                     </table>
 
@@ -155,16 +155,6 @@
                         </div>
                     </div>
                 </div>
-
-                <section class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex justify-between items-center">
-                    <div>
-                        <h3 class="text-base font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-excel text-[#D4AF37] mr-2"></i> Adicionar Planilha: Fluxo de Caixa</h3>
-                    </div>
-                    <label class="cursor-pointer bg-[#D4AF37] hover:bg-[#C27803] text-[#0B0B0B] text-sm font-bold px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Selecionar Arquivo
-                        <input type="file" id="input-fluxo" onchange="lerPlanilhaFluxo(event)" accept=".xlsx, .xls, .csv" class="hidden">
-                    </label>
-                </section>
             </div>
 
             <!-- SEÇÃO 3: COBRANÇA E PAGAMENTOS -->
@@ -193,37 +183,58 @@
                             </select>
                         </div>
                     </div>
-                    <button onclick="limparDadosCobranca()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-trash-can"></i> Limpar Dados
+                    <button onclick="carregarDadosGitHub()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Atualizar Dados
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
-                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Recebido (Pago)</span>
-                        <p class="text-2xl font-black text-[#D4AF37] mt-2" id="cob-recebido">R$ 0,00</p>
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#332B13] shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass"></i> Filtrar Paciente / Forma Pgto / Status
+                            </span>
+                            <p class="text-xs text-[#737373] mt-1">Ex: Boleto, Pix, Pago, Vencido, Nome...</p>
+                        </div>
+                        <div class="mt-4 relative">
+                            <input type="text" id="buscaDinamicaCob" onkeyup="filtrarCobrancaPorData()" placeholder="Digite para pesquisar..." class="w-full text-sm border border-[#332B13] bg-[#1A1812] text-[#FFFFFF] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] font-medium">
+                        </div>
                     </div>
-                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
-                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Inadimplência (Vencido)</span>
-                        <p class="text-2xl font-black text-[#C27803] mt-2" id="cob-inadimplencia">R$ 0,00</p>
+
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-[#8C8C8C] uppercase block truncate" id="card2-titulo-pesquisa-cob">Total Somado (Geral)</span>
+                            <p class="text-2xl font-black text-[#D4AF37] mt-2" id="cob-total-busca">R$ 0,00</p>
+                        </div>
+                        <span class="text-xs text-[#737373] mt-3 block" id="cob-qtd-busca">0 registros encontrados</span>
                     </div>
-                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
-                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Total Cobrado</span>
-                        <p class="text-2xl font-black text-[#FFFFFF] mt-2" id="cob-total">R$ 0,00</p>
+
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex flex-col justify-between">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <span class="text-[10px] font-bold text-[#8C8C8C] uppercase">Recebido (Pago)</span>
+                                <p class="text-base font-black text-[#D4AF37] mt-1" id="cob-recebido">R$ 0,00</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-[#8C8C8C] uppercase">Inadimplência</span>
+                                <p class="text-base font-black text-[#C27803] mt-1" id="cob-inadimplencia">R$ 0,00</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-[#737373] mt-2 block" id="cob-total-geral-badge">Total Filtrado: R$ 0,00</span>
                     </div>
                 </div>
 
                 <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-sm font-bold text-[#FFFFFF]">Lançamentos por Paciente</h4>
-                        <input type="text" id="buscaCob" onkeyup="filtrarCobranca()" placeholder="Pesquisar paciente ou status (pago, vencido)..." class="text-xs border border-[#332B13] bg-[#1A1812] text-[#FFFFFF] rounded-lg px-3 py-1.5 w-80 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                    <div class="flex justify-between items-center border-b border-[#262626] pb-3">
+                        <h4 class="text-sm font-bold text-[#FFFFFF]"><i class="fa-solid fa-receipt text-[#D4AF37] mr-2"></i> Lançamentos por Paciente</h4>
+                        <span class="text-xs font-semibold bg-[#1F1F1F] text-[#D4AF37] px-3 py-1 rounded-full border border-[#332B13]" id="badge-resultados-tabela-cob">0 Registros</span>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="bg-[#1A1812] text-[#D4AF37] uppercase border-b border-[#262626]">
                             <tr><th class="p-3">Data</th><th class="p-3">Status</th><th class="p-3">Paciente</th><th class="p-3">Forma Pagamento</th><th class="p-3 text-right">Valor</th></tr>
                         </thead>
                         <tbody id="tabela-cobranca" class="divide-y divide-[#1F1F1F]">
-                            <tr><td colspan="5" class="p-4 text-center text-[#737373]">Carregue as planilhas de Cobrança e Pagamentos.</td></tr>
+                            <tr><td colspan="5" class="p-4 text-center text-[#737373]">A carregar dados do GitHub...</td></tr>
                         </tbody>
                     </table>
 
@@ -235,21 +246,10 @@
                         </div>
                     </div>
                 </div>
-
-                <section class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex justify-between items-center">
-                    <div>
-                        <h3 class="text-base font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-excel text-[#D4AF37] mr-2"></i> Adicionar Planilha: Cobrança e Pagamentos</h3>
-                    </div>
-                    <label class="cursor-pointer bg-[#D4AF37] hover:bg-[#C27803] text-[#0B0B0B] text-sm font-bold px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Selecionar Arquivo
-                        <input type="file" id="input-cobranca" onchange="lerPlanilhaCobranca(event)" accept=".xlsx, .xls, .csv" class="hidden">
-                    </label>
-                </section>
             </div>
 
             <!-- SEÇÃO 4: CONTAS A PAGAR & CUSTOS -->
             <div id="aba-contas" class="space-y-6">
-                <!-- BARRA SUPERIOR: FILTROS DE PERÍODO -->
                 <div class="flex flex-wrap items-center justify-between bg-[#141414] p-4 rounded-xl border border-[#262626] shadow-sm gap-4">
                     <div class="flex flex-wrap items-center gap-4">
                         <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
@@ -274,14 +274,12 @@
                             </select>
                         </div>
                     </div>
-                    <button onclick="limparDadosContas()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
-                        <i class="fa-solid fa-trash-can"></i> Limpar Dados
+                    <button onclick="carregarDadosGitHub()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Atualizar Dados
                     </button>
                 </div>
 
-                <!-- CARDS DA CALCULADORA DINÂMICA DE PESQUISA -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- CARD 1: CAIXA DE PESQUISA -->
                     <div class="bg-[#141414] p-6 rounded-xl border border-[#332B13] shadow-sm flex flex-col justify-between">
                         <div>
                             <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider flex items-center gap-2">
@@ -294,7 +292,6 @@
                         </div>
                     </div>
 
-                    <!-- CARD 2: TOTAL SOMADO -->
                     <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex flex-col justify-between">
                         <div>
                             <span class="text-xs font-bold text-[#8C8C8C] uppercase block truncate" id="card2-titulo-pesquisa">Total Somado (Geral)</span>
@@ -303,7 +300,6 @@
                         <span class="text-xs text-[#737373] mt-3 block" id="contas-qtd">0 lançamentos encontrados</span>
                     </div>
 
-                    <!-- CARD 3: MÉDIA GASTA POR LANÇAMENTO -->
                     <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex flex-col justify-between">
                         <div>
                             <span class="text-xs font-bold text-[#8C8C8C] uppercase">Média Gasta p/ Lançamento</span>
@@ -313,7 +309,6 @@
                     </div>
                 </div>
 
-                <!-- TABELA DE LANÇAMENTOS -->
                 <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm space-y-4">
                     <div class="flex justify-between items-center border-b border-[#262626] pb-3">
                         <h4 class="text-sm font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-invoice-dollar text-[#C27803] mr-2"></i> Detalhamento de Contas e Saídas</h4>
@@ -321,10 +316,10 @@
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="bg-[#1A1812] text-[#D4AF37] uppercase border-b border-[#262626]">
-                            <tr><th class="p-3">Vencimento</th><th class="p-3">Tipo</th><th class="p-3">Conta</th><th class="p-3">Descrição</th><th class="p-3 text-right">Valor</th></tr>
+                            <tr><th class="p-3">Pagamento</th><th class="p-3">Tipo</th><th class="p-3">Conta</th><th class="p-3">Descrição</th><th class="p-3 text-right">Valor</th></tr>
                         </thead>
                         <tbody id="tabela-contas" class="divide-y divide-[#1F1F1F]">
-                            <tr><td colspan="5" class="p-4 text-center text-[#737373]">Carregue as planilhas de Contas a Pagar.</td></tr>
+                            <tr><td colspan="5" class="p-4 text-center text-[#737373]">A carregar dados do GitHub...</td></tr>
                         </tbody>
                     </table>
 
@@ -336,17 +331,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- SESSÃO DE IMPORTAÇÃO DA PLANILHA -->
-                <section class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex justify-between items-center">
-                    <div>
-                        <h3 class="text-base font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-excel text-[#D4AF37] mr-2"></i> Adicionar Planilha: Contas a Pagar</h3>
-                    </div>
-                    <label class="cursor-pointer bg-[#D4AF37] hover:bg-[#C27803] text-[#0B0B0B] text-sm font-bold px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Selecionar Arquivo
-                        <input type="file" id="input-contas" onchange="lerPlanilhaContas(event)" accept=".xlsx, .xls, .csv" class="hidden">
-                    </label>
-                </section>
             </div>
 
             <div id="aba-orcamentos" class="space-y-6 hidden"></div>
@@ -365,44 +349,64 @@
         let dadosContasBase = [], dadosContasFiltrados = [];
         let paginaContas = 1;
 
-        // INICIALIZAÇÃO DA PÁGINA (CARREGA DADOS DO LOCALSTORAGE)
+        // INICIALIZAÇÃO DA PÁGINA (CARREGA AUTOMATICAMENTE DO GITHUB)
         window.onload = function() {
-            carregarDadosMemoria();
+            carregarDadosGitHub();
         };
 
-        function salvarDadosMemoria() {
+        // FUNÇÃO DE LEITURA AUTOMÁTICA DE ARQUIVOS EXCEL (.xlsx) DO GITHUB
+        async function carregarDadosGitHub() {
             try {
-                localStorage.setItem('fin7_dadosFluxo', JSON.stringify(dadosFluxoBase));
-                localStorage.setItem('fin7_dadosCob', JSON.stringify(dadosCobBase));
-                localStorage.setItem('fin7_dadosContas', JSON.stringify(dadosContasBase));
-            } catch (e) {
-                console.warn('Não foi possível salvar na memória do navegador:', e);
-            }
-        }
+                // 1. Carregar Fluxo de Caixa
+                try {
+                    const resFluxo = await fetch('dados/fluxo.xlsx');
+                    if (resFluxo.ok) {
+                        const buf = await resFluxo.arrayBuffer();
+                        const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+                        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                        dadosFluxoBase = raw.map(row => {
+                            const dt = parseDataExcel(row['Data']);
+                            return { ...row, dataObj: dt, dataStr: formatarDataBR(dt) };
+                        });
+                        if(dadosFluxoBase.length > 0) ajustarFiltrosAutomaticos(dadosFluxoBase, 'fluxo');
+                        filtrarFluxoPorData();
+                    }
+                } catch(e) { console.log('Fluxo não carregado:', e); }
 
-        function carregarDadosMemoria() {
-            try {
-                const f = localStorage.getItem('fin7_dadosFluxo');
-                const c = localStorage.getItem('fin7_dadosCob');
-                const cnt = localStorage.getItem('fin7_dadosContas');
+                // 2. Carregar Cobrança e Pagamentos
+                try {
+                    const resCob = await fetch('dados/cobranca.xlsx');
+                    if (resCob.ok) {
+                        const buf = await resCob.arrayBuffer();
+                        const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+                        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                        dadosCobBase = raw.map(r => {
+                            const dt = parseDataExcel(r['Vencimento']);
+                            return { ...r, dataObj: dt, dataStr: formatarDataBR(dt) };
+                        });
+                        if(dadosCobBase.length > 0) ajustarFiltrosAutomaticos(dadosCobBase, 'cobranca');
+                        filtrarCobrancaPorData();
+                    }
+                } catch(e) { console.log('Cobrança não carregada:', e); }
 
-                if (f) {
-                    dadosFluxoBase = JSON.parse(f).map(r => ({ ...r, dataObj: parseDataExcel(r.dataObj || r.Data) }));
-                    ajustarFiltrosAutomaticos(dadosFluxoBase, 'fluxo');
-                    filtrarFluxoPorData();
-                }
-                if (c) {
-                    dadosCobBase = JSON.parse(c).map(r => ({ ...r, dataObj: parseDataExcel(r.dataObj || r.Vencimento) }));
-                    ajustarFiltrosAutomaticos(dadosCobBase, 'cobranca');
-                    filtrarCobrancaPorData();
-                }
-                if (cnt) {
-                    dadosContasBase = JSON.parse(cnt).map(r => ({ ...r, dataObj: parseDataExcel(r.dataObj || r.Vencimento) }));
-                    ajustarFiltrosAutomaticos(dadosContasBase, 'contas');
-                    filtrarContasPorData();
-                }
-            } catch (e) {
-                console.warn('Erro ao carregar memória do navegador:', e);
+                // 3. Carregar Contas a Pagar & Custos
+                try {
+                    const resContas = await fetch('dados/contas.xlsx');
+                    if (resContas.ok) {
+                        const buf = await resContas.arrayBuffer();
+                        const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+                        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                        dadosContasBase = raw.map(r => {
+                            const dt = parseDataExcel(r['Pagamento'] || r['pagamento'] || r['PAGAMENTO']);
+                            return { ...r, dataObj: dt, dataStr: formatarDataBR(dt) };
+                        });
+                        if(dadosContasBase.length > 0) ajustarFiltrosAutomaticos(dadosContasBase, 'contas');
+                        filtrarContasPorData();
+                    }
+                } catch(e) { console.log('Contas não carregadas:', e); }
+
+            } catch (erro) {
+                console.warn('Aviso: Certifique-se de colocar os arquivos .xlsx na pasta /dados/ no GitHub.', erro);
             }
         }
 
@@ -443,21 +447,6 @@
             const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
             const ano = dateObj.getFullYear();
             return `${dia}/${mes}/${ano}`;
-        }
-
-        function mesclarDados(base, novos) {
-            const unicos = [...base];
-            novos.forEach(novo => {
-                const duplicado = base.some(b => 
-                    b.dataStr === novo.dataStr && 
-                    String(b['Valor']) === String(novo['Valor']) && 
-                    String(b['Descrição'] || b['Paciente'] || '').trim() === String(novo['Descrição'] || novo['Paciente'] || '').trim()
-                );
-                if (!duplicado) {
-                    unicos.push(novo);
-                }
-            });
-            return unicos;
         }
 
         function ajustarFiltrosAutomaticos(novosDados, tipoFiltro) {
@@ -506,42 +495,6 @@
         }
 
         // --- FLUXO DE CAIXA ---
-        function lerPlanilhaFluxo(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                const novosDados = rawData.map(row => {
-                    const dt = parseDataExcel(row['Data']);
-                    return { ...row, dataObj: dt, dataStr: formatarDataBR(dt) };
-                });
-                ajustarFiltrosAutomaticos(novosDados, 'fluxo');
-                dadosFluxoBase = mesclarDados(dadosFluxoBase, novosDados);
-                salvarDadosMemoria();
-                paginaFluxo = 1;
-                filtrarFluxoPorData();
-                event.target.value = '';
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function limparDadosFluxo() {
-            dadosFluxoBase = [];
-            dadosFluxoFiltrados = [];
-            salvarDadosMemoria();
-            paginaFluxo = 1;
-            document.getElementById('fc-entradas').innerText = 'R$ 0,00';
-            document.getElementById('fc-saidas').innerText = 'R$ 0,00';
-            document.getElementById('fc-saldo').innerText = 'R$ 0,00';
-            document.getElementById('total-entradas-badge').innerText = 'Total: R$ 0,00';
-            document.getElementById('grid-meios-pagamento').innerHTML = '';
-            document.getElementById('buscaFluxo').value = '';
-            renderizarTabelaFluxo();
-        }
-
         function filtrarFluxoPorData() {
             const mesInicio = parseInt(document.getElementById('filtroMesInicio').value);
             const mesFim = parseInt(document.getElementById('filtroMesFim').value);
@@ -630,74 +583,58 @@
         }
 
         // --- COBRANÇA E PAGAMENTOS ---
-        function lerPlanilhaCobranca(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                const novosDados = rawData.map(r => {
-                    const dt = parseDataExcel(r['Vencimento']);
-                    return { ...r, dataObj: dt, dataStr: formatarDataBR(dt) };
-                });
-                ajustarFiltrosAutomaticos(novosDados, 'cobranca');
-                dadosCobBase = mesclarDados(dadosCobBase, novosDados);
-                salvarDadosMemoria();
-                paginaCob = 1;
-                filtrarCobrancaPorData();
-                event.target.value = '';
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function limparDadosCobranca() {
-            dadosCobBase = [];
-            dadosCobFiltrados = [];
-            salvarDadosMemoria();
-            paginaCob = 1;
-            document.getElementById('cob-recebido').innerText = 'R$ 0,00';
-            document.getElementById('cob-inadimplencia').innerText = 'R$ 0,00';
-            document.getElementById('cob-total').innerText = 'R$ 0,00';
-            document.getElementById('buscaCob').value = '';
-            renderizarTabelaCobranca();
-        }
-
         function filtrarCobrancaPorData() {
             const mesInicio = parseInt(document.getElementById('filtroMesInicioCob').value);
             const mesFim = parseInt(document.getElementById('filtroMesFimCob').value);
             const anoSel = document.getElementById('filtroAnoCob').value;
-            const termo = document.getElementById('buscaCob').value.toLowerCase();
+            const termoBusca = document.getElementById('buscaDinamicaCob').value.trim().toLowerCase();
 
             dadosCobFiltrados = dadosCobBase.filter(row => {
                 if (!row.dataObj) return false;
                 const m = row.dataObj.getMonth(), a = row.dataObj.getFullYear();
                 const dentroData = (m >= Math.min(mesInicio, mesFim) && m <= Math.max(mesInicio, mesFim)) &&
                                    (anoSel === 'ALL' || a == parseInt(anoSel));
+                
                 const paciente = (row['Paciente'] || '').toString().toLowerCase();
                 const status = (row['Status'] || '').toString().toLowerCase();
                 const formaPag = (row['Forma Pagamento'] || '').toString().toLowerCase();
-                return dentroData && (paciente.includes(termo) || status.includes(termo) || formaPag.includes(termo));
+                
+                const atendeBusca = termoBusca === '' || (paciente.includes(termoBusca) || status.includes(termoBusca) || formaPag.includes(termoBusca));
+
+                return dentroData && atendeBusca;
             });
 
-            let recebido = 0, inadimplencia = 0, total = 0;
+            let recebidoFiltrado = 0;
+            let inadimplenciaFiltrada = 0;
+            let totalBusca = 0;
+
             dadosCobFiltrados.forEach(r => {
                 const val = parseFloat(r['Valor']) || 0;
                 const status = String(r['Status'] || '').trim();
-                total += val;
-                if (status === 'Pago') recebido += val;
-                if (status === 'Vencido') inadimplencia += val;
+                totalBusca += val;
+                
+                if (status === 'Pago') recebidoFiltrado += val;
+                else if (status === 'Vencido') inadimplenciaFiltrada += val;
             });
 
-            document.getElementById('cob-recebido').innerText = `R$ ${recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('cob-inadimplencia').innerText = `R$ ${inadimplencia.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('cob-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const qtd = dadosCobFiltrados.length;
+
+            if (termoBusca !== '') {
+                document.getElementById('card2-titulo-pesquisa-cob').innerText = `Total Somado: "${termoBusca.toUpperCase()}"`;
+            } else {
+                document.getElementById('card2-titulo-pesquisa-cob').innerText = 'Total Somado (Geral)';
+            }
+
+            document.getElementById('cob-total-busca').innerText = `R$ ${totalBusca.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('cob-qtd-busca').innerText = `${qtd} registro(s) encontrado(s)`;
+            document.getElementById('cob-recebido').innerText = `R$ ${recebidoFiltrado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('cob-inadimplencia').innerText = `R$ ${inadimplenciaFiltrada.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('cob-total-geral-badge').innerText = `Total Filtrado: R$ ${totalBusca.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('badge-resultados-tabela-cob').innerText = `${qtd} Registros`;
+
             paginaCob = 1;
             renderizarTabelaCobranca();
         }
-
-        function filtrarCobranca() { filtrarCobrancaPorData(); }
 
         function renderizarTabelaCobranca() {
             const tb = document.getElementById('tabela-cobranca');
@@ -728,43 +665,7 @@
 
         function mudarPaginaCob(delta) { paginaCob += delta; renderizarTabelaCobranca(); }
 
-        // --- CONTAS A PAGAR & CUSTOS (COM MEMÓRIA LOCAL E CALCULADORA DINÂMICA) ---
-        function lerPlanilhaContas(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                const novosDados = rawData.map(r => {
-                    const dt = parseDataExcel(r['Vencimento']);
-                    return { ...r, dataObj: dt, dataStr: formatarDataBR(dt) };
-                });
-                ajustarFiltrosAutomaticos(novosDados, 'contas');
-                dadosContasBase = mesclarDados(dadosContasBase, novosDados);
-                salvarDadosMemoria();
-                paginaContas = 1;
-                filtrarContasPorData();
-                event.target.value = '';
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function limparDadosContas() {
-            dadosContasBase = [];
-            dadosContasFiltrados = [];
-            salvarDadosMemoria();
-            paginaContas = 1;
-            document.getElementById('buscaDinamicaContas').value = '';
-            document.getElementById('card2-titulo-pesquisa').innerText = 'Total Somado (Geral)';
-            document.getElementById('contas-total').innerText = 'R$ 0,00';
-            document.getElementById('contas-qtd').innerText = '0 lançamentos encontrados';
-            document.getElementById('contas-medio').innerText = 'R$ 0,00';
-            document.getElementById('badge-resultados-tabela').innerText = '0 Registros';
-            renderizarTabelaContas();
-        }
-
+        // --- CONTAS A PAGAR & CUSTOS ---
         function filtrarContasPorData() {
             const mesInicio = parseInt(document.getElementById('filtroMesInicioContas').value);
             const mesFim = parseInt(document.getElementById('filtroMesFimContas').value);
@@ -838,37 +739,3 @@
     </script>
 </body>
 </html>
-async function carregarDadosDoGoogleDrive() {
-  // Substitua abaixo pelo link gerado no "Publicar na Web" do Google Sheets
-  https://docs.google.com/spreadsheets/d/e/2PACX-1vSnI6n1HTZJmnbCZ8j7Wr9UMsGfVMR6gaslrAxfgf6wPo_iVdin33P_zjJdSuCPXA/pub?output=csv
-
-  try {
-    const resposta = await fetch(urlCSV);
-    if (!resposta.ok) throw new Error('Não foi possível aceder à planilha no Drive.');
-
-    const textoCSV = await resposta.text();
-
-    // Utiliza o SheetJS para converter o CSV em formato que o Fin7 entende
-    const workbook = XLSX.read(textoCSV, { type: 'string' });
-    const primeiraAba = workbook.SheetNames[0];
-    const dadosJson = XLSX.utils.sheet_to_json(workbook.Sheets[primeiraAba]);
-
-    // Atualiza o localStorage com os dados mais recentes da nuvem
-    localStorage.setItem('fin7_dados_contas', JSON.stringify(dadosJson));
-
-    console.log("Dados sincronizados com sucesso a partir do Google Drive!");
-    
-    // Atualiza a interface da aplicação
-    if (typeof renderizarTabelas === 'function') renderizarTabelas();
-    if (typeof atualizarDashboard === 'function') atualizarDashboard();
-
-  } catch (erro) {
-    console.error("Erro na sincronização com o Drive:", erro);
-    // Caso esteja offline, o sistema continuará a usar a última versão salva no localStorage
-  }
-}
-
-// Executa a função assim que a página é aberta
-window.addEventListener('DOMContentLoaded', () => {
-  carregarDadosDoGoogleDrive();
-});
