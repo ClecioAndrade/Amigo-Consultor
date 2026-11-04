@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão Financeira Odontológica</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (Leitor de Excel/CSV) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-[#0B0B0B] text-[#E5E5E5] font-sans flex h-screen overflow-hidden">
+
+    <!-- MENU LATERAL -->
+    <aside class="w-64 bg-[#141414] text-[#A3A3A3] flex flex-col justify-between shrink-0 border-r border-[#262626]">
+        <div>
+            <div class="p-6 text-center border-b border-[#262626]">
+                <h1 class="text-2xl font-extrabold tracking-wider text-[#FFFFFF]">GESTÃO<span class="text-[#D4AF37]">CLÍNICA</span></h1>
+                <p class="text-xs text-[#737373] mt-1">Inteligência Financeira</p>
+            </div>
+
+            <nav class="mt-4 px-3 space-y-1">
+                <button onclick="mudarAba('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg text-[#A3A3A3] hover:bg-[#1F1F1F] hover:text-[#FFFFFF] transition">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard Gerencial
+                </button>
+                <button onclick="mudarAba('fluxo')" id="nav-fluxo" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg text-[#A3A3A3] hover:bg-[#1F1F1F] hover:text-[#FFFFFF] transition">
+                    <i class="fa-solid fa-money-bill-transfer"></i> Fluxo de Caixa
+                </button>
+                <button onclick="mudarAba('cobranca')" id="nav-cobranca" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-[#A3A3A3] hover:bg-[#1F1F1F] hover:text-[#FFFFFF] transition">
+                    <i class="fa-solid fa-receipt"></i> Cobrança e Pagamentos
+                </button>
+                <button onclick="mudarAba('contas')" id="nav-contas" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg bg-[#D4AF37] text-[#0B0B0B] shadow transition">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Contas a Pagar & Custos
+                </button>
+                <button onclick="mudarAba('orcamentos')" id="nav-orcamentos" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-[#A3A3A3] hover:bg-[#1F1F1F] hover:text-[#FFFFFF] transition">
+                    <i class="fa-solid fa-file-signature"></i> Orçamentos & Conversão
+                </button>
+                <button onclick="mudarAba('dre')" id="nav-dre" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-[#A3A3A3] hover:bg-[#1F1F1F] hover:text-[#FFFFFF] transition">
+                    <i class="fa-solid fa-chair"></i> DRE & Custo por Cadeira
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-[#262626] text-xs text-[#737373] text-center">
+            Painel Executivo &copy; 2026
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <div class="flex-1 flex flex-col overflow-y-auto bg-[#0B0B0B]">
+
+        <!-- CABEÇALHO -->
+        <header class="bg-[#141414] border-b border-[#262626] px-8 py-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-[#FFFFFF]" id="tituloPagina">Contas a Pagar & Custos</h2>
+                <p class="text-xs text-[#8C8C8C]" id="subtituloPagina">Acompanhamento consolidado e calculadora dinâmica de despesas</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-sm font-semibold text-[#FFFFFF]">Dr. Luciano Guarnieri</p>
+                    <span class="text-xs bg-[#1F1F1F] text-[#D4AF37] px-2 py-0.5 rounded-full font-semibold border border-[#332B13]">Altera Odontologia</span>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-[#1F1F1F] border border-[#332B13] text-[#D4AF37] flex items-center justify-center font-bold">
+                    LG
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="p-8 space-y-6">
+
+            <!-- SEÇÃO 1: DASHBOARD GERENCIAL -->
+            <div id="aba-dashboard" class="space-y-6 hidden">
+                <div class="bg-[#141414] border border-[#332B13] p-4 rounded-xl text-[#D4AF37] text-xs flex items-center gap-3">
+                    <i class="fa-solid fa-circle-info text-base"></i>
+                    <span>Utilize os menus laterais para gerenciar os dados. <b>Armazenamento local automático ativado</b>.</span>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 2: FLUXO DE CAIXA -->
+            <div id="aba-fluxo" class="space-y-6 hidden">
+                <div class="flex flex-wrap items-center justify-between bg-[#141414] p-4 rounded-xl border border-[#262626] shadow-sm gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">DE</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroMesInicio" onchange="filtrarFluxoPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="0" class="bg-[#141414]">Janeiro</option><option value="1" class="bg-[#141414]">Fevereiro</option><option value="2" class="bg-[#141414]">Março</option><option value="3" class="bg-[#141414]">Abril</option><option value="4" class="bg-[#141414]">Maio</option><option value="5" class="bg-[#141414]">Junho</option><option value="6" class="bg-[#141414]">Julho</option><option value="7" class="bg-[#141414]">Agosto</option><option value="8" class="bg-[#141414]">Setembro</option><option value="9" class="bg-[#141414]">Outubro</option><option value="10" class="bg-[#141414]">Novembro</option><option value="11" class="bg-[#141414]">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">ATÉ</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroMesFim" onchange="filtrarFluxoPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="0" class="bg-[#141414]">Janeiro</option><option value="1" class="bg-[#141414]">Fevereiro</option><option value="2" class="bg-[#141414]">Março</option><option value="3" class="bg-[#141414]">Abril</option><option value="4" class="bg-[#141414]">Maio</option><option value="5" class="bg-[#141414]">Junho</option><option value="6" class="bg-[#141414]">Julho</option><option value="7" class="bg-[#141414]">Agosto</option><option value="8" class="bg-[#141414]">Setembro</option><option value="9" class="bg-[#141414]">Outubro</option><option value="10" class="bg-[#141414]">Novembro</option><option value="11" class="bg-[#141414]">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">ANO</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroAnoFluxo" onchange="filtrarFluxoPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="ALL" class="bg-[#141414]">Todos os Anos</option><option value="2024" class="bg-[#141414]">2024</option><option value="2025" class="bg-[#141414]">2025</option><option value="2026" selected class="bg-[#141414]">2026</option><option value="2027" class="bg-[#141414]">2027</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="limparDadosFluxo()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> Limpar Dados
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
+                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Entradas (IN)</span>
+                        <p class="text-2xl font-black text-[#D4AF37] mt-2" id="fc-entradas">R$ 0,00</p>
+                    </div>
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
+                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Saídas (OUT)</span>
+                        <p class="text-2xl font-black text-[#C27803] mt-2" id="fc-saidas">R$ 0,00</p>
+                    </div>
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
+                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Saldo Líquido</span>
+                        <p class="text-2xl font-black text-[#FFFFFF] mt-2" id="fc-saldo">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-[#262626] pb-3">
+                        <h4 class="text-sm font-bold text-[#FFFFFF]"><i class="fa-solid fa-wallet text-[#D4AF37] mr-2"></i> Resumo de Entradas por Meio de Pagamento</h4>
+                        <span class="text-xs font-semibold bg-[#1F1F1F] text-[#D4AF37] px-3 py-1 rounded-full border border-[#332B13]" id="total-entradas-badge">Total: R$ 0,00</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3" id="grid-meios-pagamento"></div>
+                </div>
+
+                <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-sm font-bold text-[#FFFFFF]">Lançamentos do Fluxo de Caixa</h4>
+                        <input type="text" id="buscaFluxo" onkeyup="filtrarFluxo()" placeholder="Pesquisar lançamento..." class="text-xs border border-[#332B13] bg-[#1A1812] text-[#FFFFFF] rounded-lg px-3 py-1.5 w-64 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-[#1A1812] text-[#D4AF37] uppercase border-b border-[#262626]">
+                            <tr><th class="p-3">Data</th><th class="p-3">Tipo</th><th class="p-3">Descrição</th><th class="p-3 text-right">Valor</th></tr>
+                        </thead>
+                        <tbody id="tabela-fluxo" class="divide-y divide-[#1F1F1F]">
+                            <tr><td colspan="4" class="p-4 text-center text-[#737373]">Carregue as planilhas de Fluxo de Caixa.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <div class="flex justify-between items-center text-xs text-[#8C8C8C] pt-2">
+                        <span id="infoPaginacaoFluxo">Exibindo 0 registros</span>
+                        <div class="flex gap-2">
+                            <button id="btnPrevFluxo" onclick="mudarPaginaFluxo(-1)" class="px-3 py-1 border border-[#332B13] rounded hover:bg-[#1F1F1F] disabled:opacity-40">Anterior</button>
+                            <button id="btnNextFluxo" onclick="mudarPaginaFluxo(1)" class="px-3 py-1 border border-[#332B13] rounded hover:bg-[#1F1F1F] disabled:opacity-40">Próximo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-excel text-[#D4AF37] mr-2"></i> Adicionar Planilha: Fluxo de Caixa</h3>
+                    </div>
+                    <label class="cursor-pointer bg-[#D4AF37] hover:bg-[#C27803] text-[#0B0B0B] text-sm font-bold px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Selecionar Arquivo
+                        <input type="file" id="input-fluxo" onchange="lerPlanilhaFluxo(event)" accept=".xlsx, .xls, .csv" class="hidden">
+                    </label>
+                </section>
+            </div>
+
+            <!-- SEÇÃO 3: COBRANÇA E PAGAMENTOS -->
+            <div id="aba-cobranca" class="space-y-6 hidden">
+                <div class="flex flex-wrap items-center justify-between bg-[#141414] p-4 rounded-xl border border-[#262626] shadow-sm gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">DE</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroMesInicioCob" onchange="filtrarCobrancaPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="0" class="bg-[#141414]">Janeiro</option><option value="1" class="bg-[#141414]">Fevereiro</option><option value="2" class="bg-[#141414]">Março</option><option value="3" class="bg-[#141414]">Abril</option><option value="4" class="bg-[#141414]">Maio</option><option value="5" class="bg-[#141414]">Junho</option><option value="6" class="bg-[#141414]">Julho</option><option value="7" class="bg-[#141414]">Agosto</option><option value="8" class="bg-[#141414]">Setembro</option><option value="9" class="bg-[#141414]">Outubro</option><option value="10" class="bg-[#141414]">Novembro</option><option value="11" class="bg-[#141414]">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">ATÉ</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroMesFimCob" onchange="filtrarCobrancaPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="0" class="bg-[#141414]">Janeiro</option><option value="1" class="bg-[#141414]">Fevereiro</option><option value="2" class="bg-[#141414]">Março</option><option value="3" class="bg-[#141414]">Abril</option><option value="4" class="bg-[#141414]">Maio</option><option value="5" class="bg-[#141414]">Junho</option><option value="6" class="bg-[#141414]">Julho</option><option value="7" class="bg-[#141414]">Agosto</option><option value="8" class="bg-[#141414]">Setembro</option><option value="9" class="bg-[#141414]">Outubro</option><option value="10" class="bg-[#141414]">Novembro</option><option value="11" class="bg-[#141414]">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">ANO</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroAnoCob" onchange="filtrarCobrancaPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="ALL" class="bg-[#141414]">Todos os Anos</option><option value="2024" class="bg-[#141414]">2024</option><option value="2025" class="bg-[#141414]">2025</option><option value="2026" selected class="bg-[#141414]">2026</option><option value="2027" class="bg-[#141414]">2027</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="limparDadosCobranca()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> Limpar Dados
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
+                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Recebido (Pago)</span>
+                        <p class="text-2xl font-black text-[#D4AF37] mt-2" id="cob-recebido">R$ 0,00</p>
+                    </div>
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
+                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Inadimplência (Vencido)</span>
+                        <p class="text-2xl font-black text-[#C27803] mt-2" id="cob-inadimplencia">R$ 0,00</p>
+                    </div>
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm">
+                        <span class="text-xs font-bold text-[#8C8C8C] uppercase">Total Cobrado</span>
+                        <p class="text-2xl font-black text-[#FFFFFF] mt-2" id="cob-total">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-sm font-bold text-[#FFFFFF]">Lançamentos por Paciente</h4>
+                        <input type="text" id="buscaCob" onkeyup="filtrarCobranca()" placeholder="Pesquisar paciente ou status (pago, vencido)..." class="text-xs border border-[#332B13] bg-[#1A1812] text-[#FFFFFF] rounded-lg px-3 py-1.5 w-80 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-[#1A1812] text-[#D4AF37] uppercase border-b border-[#262626]">
+                            <tr><th class="p-3">Data</th><th class="p-3">Status</th><th class="p-3">Paciente</th><th class="p-3">Forma Pagamento</th><th class="p-3 text-right">Valor</th></tr>
+                        </thead>
+                        <tbody id="tabela-cobranca" class="divide-y divide-[#1F1F1F]">
+                            <tr><td colspan="5" class="p-4 text-center text-[#737373]">Carregue as planilhas de Cobrança e Pagamentos.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <div class="flex justify-between items-center text-xs text-[#8C8C8C] pt-2">
+                        <span id="infoPaginacaoCob">Exibindo 0 registros</span>
+                        <div class="flex gap-2">
+                            <button id="btnPrevCob" onclick="mudarPaginaCob(-1)" class="px-3 py-1 border border-[#332B13] rounded hover:bg-[#1F1F1F] disabled:opacity-40">Anterior</button>
+                            <button id="btnNextCob" onclick="mudarPaginaCob(1)" class="px-3 py-1 border border-[#332B13] rounded hover:bg-[#1F1F1F] disabled:opacity-40">Próximo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-excel text-[#D4AF37] mr-2"></i> Adicionar Planilha: Cobrança e Pagamentos</h3>
+                    </div>
+                    <label class="cursor-pointer bg-[#D4AF37] hover:bg-[#C27803] text-[#0B0B0B] text-sm font-bold px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Selecionar Arquivo
+                        <input type="file" id="input-cobranca" onchange="lerPlanilhaCobranca(event)" accept=".xlsx, .xls, .csv" class="hidden">
+                    </label>
+                </section>
+            </div>
+
+            <!-- SEÇÃO 4: CONTAS A PAGAR & CUSTOS -->
+            <div id="aba-contas" class="space-y-6">
+                <!-- BARRA SUPERIOR: FILTROS DE PERÍODO -->
+                <div class="flex flex-wrap items-center justify-between bg-[#141414] p-4 rounded-xl border border-[#262626] shadow-sm gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">DE</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroMesInicioContas" onchange="filtrarContasPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="0" class="bg-[#141414]">Janeiro</option><option value="1" class="bg-[#141414]">Fevereiro</option><option value="2" class="bg-[#141414]">Março</option><option value="3" class="bg-[#141414]">Abril</option><option value="4" class="bg-[#141414]">Maio</option><option value="5" class="bg-[#141414]">Junho</option><option value="6" class="bg-[#141414]">Julho</option><option value="7" class="bg-[#141414]">Agosto</option><option value="8" class="bg-[#141414]">Setembro</option><option value="9" class="bg-[#141414]">Outubro</option><option value="10" class="bg-[#141414]">Novembro</option><option value="11" class="bg-[#141414]">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">ATÉ</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroMesFimContas" onchange="filtrarContasPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="0" class="bg-[#141414]">Janeiro</option><option value="1" class="bg-[#141414]">Fevereiro</option><option value="2" class="bg-[#141414]">Março</option><option value="3" class="bg-[#141414]">Abril</option><option value="4" class="bg-[#141414]">Maio</option><option value="5" class="bg-[#141414]">Junho</option><option value="6" class="bg-[#141414]">Julho</option><option value="7" class="bg-[#141414]">Agosto</option><option value="8" class="bg-[#141414]">Setembro</option><option value="9" class="bg-[#141414]">Outubro</option><option value="10" class="bg-[#141414]">Novembro</option><option value="11" class="bg-[#141414]">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 border border-[#332B13] bg-[#1A1812] px-3 py-1.5 rounded-lg">
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">ANO</span>
+                            <span class="text-[#332B13]">|</span>
+                            <select id="filtroAnoContas" onchange="filtrarContasPorData()" class="bg-transparent text-sm font-bold text-[#FFFFFF] focus:outline-none cursor-pointer">
+                                <option value="ALL" class="bg-[#141414]">Todos os Anos</option><option value="2024" class="bg-[#141414]">2024</option><option value="2025" class="bg-[#141414]">2025</option><option value="2026" selected class="bg-[#141414]">2026</option><option value="2027" class="bg-[#141414]">2027</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="limparDadosContas()" class="bg-[#1A1812] hover:bg-[#262118] text-[#D4AF37] border border-[#332B13] text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> Limpar Dados
+                    </button>
+                </div>
+
+                <!-- CARDS DA CALCULADORA DINÂMICA DE PESQUISA -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- CARD 1: CAIXA DE PESQUISA -->
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#332B13] shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-[#D4AF37] uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass"></i> Filtrar & Somar Despesa
+                            </span>
+                            <p class="text-xs text-[#737373] mt-1">Ex: Dental, Aluguel, Dra, Clinicorp...</p>
+                        </div>
+                        <div class="mt-4 relative">
+                            <input type="text" id="buscaDinamicaContas" onkeyup="filtrarContasPorData()" placeholder="Digite para pesquisar..." class="w-full text-sm border border-[#332B13] bg-[#1A1812] text-[#FFFFFF] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] font-medium">
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: TOTAL SOMADO -->
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-[#8C8C8C] uppercase block truncate" id="card2-titulo-pesquisa">Total Somado (Geral)</span>
+                            <p class="text-2xl font-black text-[#C27803] mt-2" id="contas-total">R$ 0,00</p>
+                        </div>
+                        <span class="text-xs text-[#737373] mt-3 block" id="contas-qtd">0 lançamentos encontrados</span>
+                    </div>
+
+                    <!-- CARD 3: MÉDIA GASTA POR LANÇAMENTO -->
+                    <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-[#8C8C8C] uppercase">Média Gasta p/ Lançamento</span>
+                            <p class="text-2xl font-black text-[#D4AF37] mt-2" id="contas-medio">R$ 0,00</p>
+                        </div>
+                        <span class="text-xs text-[#737373] mt-3 block" id="contas-pct-periodo">Calculado sobre o período filtrado</span>
+                    </div>
+                </div>
+
+                <!-- TABELA DE LANÇAMENTOS -->
+                <div class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-[#262626] pb-3">
+                        <h4 class="text-sm font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-invoice-dollar text-[#C27803] mr-2"></i> Detalhamento de Contas e Saídas</h4>
+                        <span class="text-xs font-semibold bg-[#1F1F1F] text-[#D4AF37] px-3 py-1 rounded-full border border-[#332B13]" id="badge-resultados-tabela">0 Registros</span>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-[#1A1812] text-[#D4AF37] uppercase border-b border-[#262626]">
+                            <tr><th class="p-3">Vencimento</th><th class="p-3">Tipo</th><th class="p-3">Conta</th><th class="p-3">Descrição</th><th class="p-3 text-right">Valor</th></tr>
+                        </thead>
+                        <tbody id="tabela-contas" class="divide-y divide-[#1F1F1F]">
+                            <tr><td colspan="5" class="p-4 text-center text-[#737373]">Carregue as planilhas de Contas a Pagar.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <div class="flex justify-between items-center text-xs text-[#8C8C8C] pt-2">
+                        <span id="infoPaginacaoContas">Exibindo 0 registros</span>
+                        <div class="flex gap-2">
+                            <button id="btnPrevContas" onclick="mudarPaginaContas(-1)" class="px-3 py-1 border border-[#332B13] rounded hover:bg-[#1F1F1F] disabled:opacity-40">Anterior</button>
+                            <button id="btnNextContas" onclick="mudarPaginaContas(1)" class="px-3 py-1 border border-[#332B13] rounded hover:bg-[#1F1F1F] disabled:opacity-40">Próximo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SESSÃO DE IMPORTAÇÃO DA PLANILHA -->
+                <section class="bg-[#141414] p-6 rounded-xl border border-[#262626] shadow-sm flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold text-[#FFFFFF]"><i class="fa-solid fa-file-excel text-[#D4AF37] mr-2"></i> Adicionar Planilha: Contas a Pagar</h3>
+                    </div>
+                    <label class="cursor-pointer bg-[#D4AF37] hover:bg-[#C27803] text-[#0B0B0B] text-sm font-bold px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Selecionar Arquivo
+                        <input type="file" id="input-contas" onchange="lerPlanilhaContas(event)" accept=".xlsx, .xls, .csv" class="hidden">
+                    </label>
+                </section>
+            </div>
+
+            <div id="aba-orcamentos" class="space-y-6 hidden"></div>
+            <div id="aba-dre" class="space-y-6 hidden"></div>
+
+        </main>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        let dadosFluxoBase = [], dadosFluxoFiltrados = [];
+        let paginaFluxo = 1;
+        let dadosCobBase = [], dadosCobFiltrados = [];
+        let paginaCob = 1;
+        const itensPorPagina = 15;
+        let dadosContasBase = [], dadosContasFiltrados = [];
+        let paginaContas = 1;
+
+        // INICIALIZAÇÃO DA PÁGINA (CARREGA DADOS DO LOCALSTORAGE)
+        window.onload = function() {
+            carregarDadosMemoria();
+        };
+
+        function salvarDadosMemoria() {
+            try {
+                localStorage.setItem('fin7_dadosFluxo', JSON.stringify(dadosFluxoBase));
+                localStorage.setItem('fin7_dadosCob', JSON.stringify(dadosCobBase));
+                localStorage.setItem('fin7_dadosContas', JSON.stringify(dadosContasBase));
+            } catch (e) {
+                console.warn('Não foi possível salvar na memória do navegador:', e);
+            }
+        }
+
+        function carregarDadosMemoria() {
+            try {
+                const f = localStorage.getItem('fin7_dadosFluxo');
+                const c = localStorage.getItem('fin7_dadosCob');
+                const cnt = localStorage.getItem('fin7_dadosContas');
+
+                if (f) {
+                    dadosFluxoBase = JSON.parse(f).map(r => ({ ...r, dataObj: parseDataExcel(r.dataObj || r.Data) }));
+                    ajustarFiltrosAutomaticos(dadosFluxoBase, 'fluxo');
+                    filtrarFluxoPorData();
+                }
+                if (c) {
+                    dadosCobBase = JSON.parse(c).map(r => ({ ...r, dataObj: parseDataExcel(r.dataObj || r.Vencimento) }));
+                    ajustarFiltrosAutomaticos(dadosCobBase, 'cobranca');
+                    filtrarCobrancaPorData();
+                }
+                if (cnt) {
+                    dadosContasBase = JSON.parse(cnt).map(r => ({ ...r, dataObj: parseDataExcel(r.dataObj || r.Vencimento) }));
+                    ajustarFiltrosAutomaticos(dadosContasBase, 'contas');
+                    filtrarContasPorData();
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar memória do navegador:', e);
+            }
+        }
+
+        function mudarAba(aba) {
+            ['dashboard', 'fluxo', 'cobranca', 'contas', 'orcamentos', 'dre'].forEach(item => {
+                const el = document.getElementById(`aba-${item}`);
+                const btn = document.getElementById(`nav-${item}`);
+                if (el) el.classList.add('hidden');
+                if (btn) btn.className = "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-[#A3A3A3] hover:bg-[#1F1F1F] hover:text-[#FFFFFF] transition";
+            });
+            document.getElementById(`aba-${aba}`).classList.remove('hidden');
+            document.getElementById(`nav-${aba}`).className = "w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg bg-[#D4AF37] text-[#0B0B0B] shadow transition";
+        }
+
+        function parseDataExcel(val) {
+            if (!val) return null;
+            if (val instanceof Date) return val;
+            if (typeof val === 'number') {
+                const utcDays = Math.floor(val - 25569);
+                return new Date(utcDays * 86400 * 1000);
+            }
+            const strVal = String(val).trim();
+            if (/^\d+(\.\d+)?$/.test(strVal)) {
+                const num = parseFloat(strVal);
+                return new Date(Math.floor(num - 25569) * 86400 * 1000);
+            }
+            if (strVal.includes('/')) {
+                const p = strVal.split('/');
+                if (p.length === 3) return new Date(p[2], p[1] - 1, p[0]);
+            }
+            const parsed = new Date(strVal);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatarDataBR(dateObj) {
+            if (!dateObj) return '-';
+            const dia = String(dateObj.getDate()).padStart(2, '0');
+            const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const ano = dateObj.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function mesclarDados(base, novos) {
+            const unicos = [...base];
+            novos.forEach(novo => {
+                const duplicado = base.some(b => 
+                    b.dataStr === novo.dataStr && 
+                    String(b['Valor']) === String(novo['Valor']) && 
+                    String(b['Descrição'] || b['Paciente'] || '').trim() === String(novo['Descrição'] || novo['Paciente'] || '').trim()
+                );
+                if (!duplicado) {
+                    unicos.push(novo);
+                }
+            });
+            return unicos;
+        }
+
+        function ajustarFiltrosAutomaticos(novosDados, tipoFiltro) {
+            const mesesEncontrados = novosDados.map(r => r.dataObj ? r.dataObj.getMonth() : null).filter(m => m !== null);
+            const anosEncontrados = novosDados.map(r => r.dataObj ? r.dataObj.getFullYear() : null).filter(a => a !== null);
+
+            if (mesesEncontrados.length > 0 && anosEncontrados.length > 0) {
+                const minMes = Math.min(...mesesEncontrados);
+                const maxMes = Math.max(...mesesEncontrados);
+                const anoPredominante = anosEncontrados[0];
+
+                if (tipoFiltro === 'fluxo') {
+                    document.getElementById('filtroMesInicio').value = minMes;
+                    document.getElementById('filtroMesFim').value = maxMes;
+                    const selectAno = document.getElementById('filtroAnoFluxo');
+                    verificarEAdicionarAno(selectAno, anoPredominante);
+                    selectAno.value = anoPredominante;
+                } else if (tipoFiltro === 'cobranca') {
+                    document.getElementById('filtroMesInicioCob').value = minMes;
+                    document.getElementById('filtroMesFimCob').value = maxMes;
+                    const selectAno = document.getElementById('filtroAnoCob');
+                    verificarEAdicionarAno(selectAno, anoPredominante);
+                    selectAno.value = anoPredominante;
+                } else if (tipoFiltro === 'contas') {
+                    document.getElementById('filtroMesInicioContas').value = minMes;
+                    document.getElementById('filtroMesFimContas').value = maxMes;
+                    const selectAno = document.getElementById('filtroAnoContas');
+                    verificarEAdicionarAno(selectAno, anoPredominante);
+                    selectAno.value = anoPredominante;
+                }
+            }
+        }
+
+        function verificarEAdicionarAno(selectElem, ano) {
+            let existe = false;
+            for (let opt of selectElem.options) {
+                if (opt.value == ano) { existe = true; break; }
+            }
+            if (!existe) {
+                const novaOpt = document.createElement('option');
+                novaOpt.value = ano;
+                novaOpt.text = ano;
+                novaOpt.className = "bg-[#141414]";
+                selectElem.appendChild(novaOpt);
+            }
+        }
+
+        // --- FLUXO DE CAIXA ---
+        function lerPlanilhaFluxo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                const novosDados = rawData.map(row => {
+                    const dt = parseDataExcel(row['Data']);
+                    return { ...row, dataObj: dt, dataStr: formatarDataBR(dt) };
+                });
+                ajustarFiltrosAutomaticos(novosDados, 'fluxo');
+                dadosFluxoBase = mesclarDados(dadosFluxoBase, novosDados);
+                salvarDadosMemoria();
+                paginaFluxo = 1;
+                filtrarFluxoPorData();
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function limparDadosFluxo() {
+            dadosFluxoBase = [];
+            dadosFluxoFiltrados = [];
+            salvarDadosMemoria();
+            paginaFluxo = 1;
+            document.getElementById('fc-entradas').innerText = 'R$ 0,00';
+            document.getElementById('fc-saidas').innerText = 'R$ 0,00';
+            document.getElementById('fc-saldo').innerText = 'R$ 0,00';
+            document.getElementById('total-entradas-badge').innerText = 'Total: R$ 0,00';
+            document.getElementById('grid-meios-pagamento').innerHTML = '';
+            document.getElementById('buscaFluxo').value = '';
+            renderizarTabelaFluxo();
+        }
+
+        function filtrarFluxoPorData() {
+            const mesInicio = parseInt(document.getElementById('filtroMesInicio').value);
+            const mesFim = parseInt(document.getElementById('filtroMesFim').value);
+            const anoSel = document.getElementById('filtroAnoFluxo').value;
+            const termo = document.getElementById('buscaFluxo').value.toLowerCase();
+
+            dadosFluxoFiltrados = dadosFluxoBase.filter(row => {
+                if (!row.dataObj) return false;
+                const m = row.dataObj.getMonth(), a = row.dataObj.getFullYear();
+                return (m >= Math.min(mesInicio, mesFim) && m <= Math.max(mesInicio, mesFim)) &&
+                       (anoSel === 'ALL' || a == parseInt(anoSel)) &&
+                       (row['Descrição'] || '').toString().toLowerCase().includes(termo);
+            });
+
+            let totalIn = 0, totalOut = 0;
+            dadosFluxoFiltrados.forEach(r => {
+                const tipo = String(r['Tipo'] || '').toUpperCase().trim();
+                const val = parseFloat(r['Valor']) || 0;
+                if (tipo === 'IN') totalIn += val;
+                if (tipo === 'OUT') totalOut += val;
+            });
+
+            document.getElementById('fc-entradas').innerText = `R$ ${totalIn.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('fc-saidas').innerText = `R$ ${totalOut.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('fc-saldo').innerText = `R$ ${(totalIn - totalOut).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            
+            paginaFluxo = 1;
+            renderizarTabelaFluxo();
+            calcularResumoMeios(dadosFluxoFiltrados, totalIn);
+        }
+
+        function renderizarTabelaFluxo() {
+            const tb = document.getElementById('tabela-fluxo');
+            tb.innerHTML = '';
+            const inicio = (paginaFluxo - 1) * itensPorPagina;
+            const fim = inicio + itensPorPagina;
+            const itensExibidos = dadosFluxoFiltrados.slice(inicio, fim);
+            const total = dadosFluxoFiltrados.length;
+
+            if (itensExibidos.length === 0) {
+                tb.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-[#737373]">Nenhum lançamento encontrado.</td></tr>`;
+                document.getElementById('infoPaginacaoFluxo').innerText = `Exibindo 0 registros`;
+                document.getElementById('btnPrevFluxo').disabled = true;
+                document.getElementById('btnNextFluxo').disabled = true;
+                return;
+            }
+
+            itensExibidos.forEach(r => {
+                const tipo = String(r['Tipo'] || '').toUpperCase().trim();
+                const val = parseFloat(r['Valor']) || 0;
+                const badge = tipo === 'IN' ? 'bg-[#1A1812] text-[#D4AF37] border border-[#332B13]' : 'bg-[#1F1914] text-[#C27803] border border-[#3D2B14]';
+                tb.innerHTML += `<tr class="hover:bg-[#191919]"><td class="p-3">${r.dataStr}</td><td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge}">${tipo}</span></td><td class="p-3 font-medium text-[#E5E5E5]">${r['Descrição'] || '-'}</td><td class="p-3 text-right font-semibold ${tipo === 'IN' ? 'text-[#D4AF37]' : 'text-[#C27803]'}">R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>`;
+            });
+
+            document.getElementById('infoPaginacaoFluxo').innerText = `Exibindo ${Math.min(inicio + 1, total)} até ${Math.min(fim, total)} de ${total} lançamentos`;
+            document.getElementById('btnPrevFluxo').disabled = paginaFluxo === 1;
+            document.getElementById('btnNextFluxo').disabled = fim >= total;
+        }
+
+        function mudarPaginaFluxo(delta) { paginaFluxo += delta; renderizarTabelaFluxo(); }
+        function filtrarFluxo() { filtrarFluxoPorData(); }
+
+        function calcularResumoMeios(dados, totalIn) {
+            const meios = { 'Boleto': 0, 'Cartão de Crédito': 0, 'Cartão de Débito': 0, 'Dinheiro': 0, 'Juros Recebidos': 0, 'Pix': 0, 'Transferência': 0 };
+            dados.forEach(r => {
+                if (String(r['Tipo']).toUpperCase().trim() === 'IN') {
+                    const desc = String(r['Descrição'] || '').toLowerCase();
+                    const val = parseFloat(r['Valor']) || 0;
+                    if (desc.includes('boleto')) meios['Boleto'] += val;
+                    else if (desc.includes('crédito')) meios['Cartão de Crédito'] += val;
+                    else if (desc.includes('débito')) meios['Cartão de Débito'] += val;
+                    else if (desc.includes('dinheiro')) meios['Dinheiro'] += val;
+                    else if (desc.includes('juros')) meios['Juros Recebidos'] += val;
+                    else if (desc.includes('pix')) meios['Pix'] += val;
+                    else meios['Transferência'] += val;
+                }
+            });
+            document.getElementById('total-entradas-badge').innerText = `Total: R$ ${totalIn.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const grid = document.getElementById('grid-meios-pagamento');
+            grid.innerHTML = '';
+            Object.keys(meios).forEach(k => {
+                const v = meios[k];
+                const pct = totalIn > 0 ? ((v / totalIn) * 100).toFixed(1) : '0.0';
+                grid.innerHTML += `<div class="bg-[#1A1812] p-3 rounded-xl border border-[#332B13]"><span class="text-[11px] font-bold text-[#A3A3A3]">${k}</span><p class="text-sm font-black text-[#D4AF37] mt-1">R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p><span class="text-[10px] text-[#737373]">${pct}%</span></div>`;
+            });
+        }
+
+        // --- COBRANÇA E PAGAMENTOS ---
+        function lerPlanilhaCobranca(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                const novosDados = rawData.map(r => {
+                    const dt = parseDataExcel(r['Vencimento']);
+                    return { ...r, dataObj: dt, dataStr: formatarDataBR(dt) };
+                });
+                ajustarFiltrosAutomaticos(novosDados, 'cobranca');
+                dadosCobBase = mesclarDados(dadosCobBase, novosDados);
+                salvarDadosMemoria();
+                paginaCob = 1;
+                filtrarCobrancaPorData();
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function limparDadosCobranca() {
+            dadosCobBase = [];
+            dadosCobFiltrados = [];
+            salvarDadosMemoria();
+            paginaCob = 1;
+            document.getElementById('cob-recebido').innerText = 'R$ 0,00';
+            document.getElementById('cob-inadimplencia').innerText = 'R$ 0,00';
+            document.getElementById('cob-total').innerText = 'R$ 0,00';
+            document.getElementById('buscaCob').value = '';
+            renderizarTabelaCobranca();
+        }
+
+        function filtrarCobrancaPorData() {
+            const mesInicio = parseInt(document.getElementById('filtroMesInicioCob').value);
+            const mesFim = parseInt(document.getElementById('filtroMesFimCob').value);
+            const anoSel = document.getElementById('filtroAnoCob').value;
+            const termo = document.getElementById('buscaCob').value.toLowerCase();
+
+            dadosCobFiltrados = dadosCobBase.filter(row => {
+                if (!row.dataObj) return false;
+                const m = row.dataObj.getMonth(), a = row.dataObj.getFullYear();
+                const dentroData = (m >= Math.min(mesInicio, mesFim) && m <= Math.max(mesInicio, mesFim)) &&
+                                   (anoSel === 'ALL' || a == parseInt(anoSel));
+                const paciente = (row['Paciente'] || '').toString().toLowerCase();
+                const status = (row['Status'] || '').toString().toLowerCase();
+                const formaPag = (row['Forma Pagamento'] || '').toString().toLowerCase();
+                return dentroData && (paciente.includes(termo) || status.includes(termo) || formaPag.includes(termo));
+            });
+
+            let recebido = 0, inadimplencia = 0, total = 0;
+            dadosCobFiltrados.forEach(r => {
+                const val = parseFloat(r['Valor']) || 0;
+                const status = String(r['Status'] || '').trim();
+                total += val;
+                if (status === 'Pago') recebido += val;
+                if (status === 'Vencido') inadimplencia += val;
+            });
+
+            document.getElementById('cob-recebido').innerText = `R$ ${recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('cob-inadimplencia').innerText = `R$ ${inadimplencia.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('cob-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            paginaCob = 1;
+            renderizarTabelaCobranca();
+        }
+
+        function filtrarCobranca() { filtrarCobrancaPorData(); }
+
+        function renderizarTabelaCobranca() {
+            const tb = document.getElementById('tabela-cobranca');
+            tb.innerHTML = '';
+            const inicio = (paginaCob - 1) * itensPorPagina;
+            const fim = inicio + itensPorPagina;
+            const itensExibidos = dadosCobFiltrados.slice(inicio, fim);
+            const total = dadosCobFiltrados.length;
+
+            if (itensExibidos.length === 0) {
+                tb.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#737373]">Nenhum registro encontrado.</td></tr>`;
+                document.getElementById('infoPaginacaoCob').innerText = `Exibindo 0 registros`;
+                document.getElementById('btnPrevCob').disabled = true;
+                document.getElementById('btnNextCob').disabled = true;
+                return;
+            }
+
+            itensExibidos.forEach(r => {
+                const status = String(r['Status'] || '').trim();
+                const badge = status === 'Pago' ? 'bg-[#1A1812] text-[#D4AF37] border border-[#332B13]' : 'bg-[#1F1914] text-[#C27803] border border-[#3D2B14]';
+                tb.innerHTML += `<tr class="hover:bg-[#191919]"><td class="p-3">${r.dataStr}</td><td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge}">${status}</span></td><td class="p-3 font-medium text-[#E5E5E5]">${r['Paciente'] || '-'}</td><td class="p-3">${r['Forma Pagamento'] || '-'}</td><td class="p-3 text-right font-semibold">R$ ${(parseFloat(r['Valor']) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>`;
+            });
+
+            document.getElementById('infoPaginacaoCob').innerText = `Exibindo ${Math.min(inicio + 1, total)} até ${Math.min(fim, total)} de ${total} registros`;
+            document.getElementById('btnPrevCob').disabled = paginaCob === 1;
+            document.getElementById('btnNextCob').disabled = fim >= total;
+        }
+
+        function mudarPaginaCob(delta) { paginaCob += delta; renderizarTabelaCobranca(); }
+
+        // --- CONTAS A PAGAR & CUSTOS (COM MEMÓRIA LOCAL E CALCULADORA DINÂMICA) ---
+        function lerPlanilhaContas(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                const novosDados = rawData.map(r => {
+                    const dt = parseDataExcel(r['Vencimento']);
+                    return { ...r, dataObj: dt, dataStr: formatarDataBR(dt) };
+                });
+                ajustarFiltrosAutomaticos(novosDados, 'contas');
+                dadosContasBase = mesclarDados(dadosContasBase, novosDados);
+                salvarDadosMemoria();
+                paginaContas = 1;
+                filtrarContasPorData();
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function limparDadosContas() {
+            dadosContasBase = [];
+            dadosContasFiltrados = [];
+            salvarDadosMemoria();
+            paginaContas = 1;
+            document.getElementById('buscaDinamicaContas').value = '';
+            document.getElementById('card2-titulo-pesquisa').innerText = 'Total Somado (Geral)';
+            document.getElementById('contas-total').innerText = 'R$ 0,00';
+            document.getElementById('contas-qtd').innerText = '0 lançamentos encontrados';
+            document.getElementById('contas-medio').innerText = 'R$ 0,00';
+            document.getElementById('badge-resultados-tabela').innerText = '0 Registros';
+            renderizarTabelaContas();
+        }
+
+        function filtrarContasPorData() {
+            const mesInicio = parseInt(document.getElementById('filtroMesInicioContas').value);
+            const mesFim = parseInt(document.getElementById('filtroMesFimContas').value);
+            const anoSel = document.getElementById('filtroAnoContas').value;
+            const termoBusca = document.getElementById('buscaDinamicaContas').value.trim().toLowerCase();
+
+            dadosContasFiltrados = dadosContasBase.filter(row => {
+                if (!row.dataObj) return false;
+                const m = row.dataObj.getMonth(), a = row.dataObj.getFullYear();
+                const dentroData = (m >= Math.min(mesInicio, mesFim) && m <= Math.max(mesInicio, mesFim)) &&
+                                   (anoSel === 'ALL' || a == parseInt(anoSel));
+                
+                const desc = (row['Descrição'] || '').toString().toLowerCase();
+                const conta = (row['Conta'] || '').toString().toLowerCase();
+                const tipo = (row['Tipo'] || '').toString().toLowerCase();
+                
+                const atendeBusca = termoBusca === '' || (desc.includes(termoBusca) || conta.includes(termoBusca) || tipo.includes(termoBusca));
+
+                return dentroData && atendeBusca;
+            });
+
+            let totalCusto = 0;
+            dadosContasFiltrados.forEach(r => {
+                totalCusto += parseFloat(r['Valor']) || 0;
+            });
+
+            const qtd = dadosContasFiltrados.length;
+            const medio = qtd > 0 ? totalCusto / qtd : 0;
+
+            if (termoBusca !== '') {
+                document.getElementById('card2-titulo-pesquisa').innerText = `Total Somado: "${termoBusca.toUpperCase()}"`;
+            } else {
+                document.getElementById('card2-titulo-pesquisa').innerText = 'Total Somado (Geral)';
+            }
+
+            document.getElementById('contas-total').innerText = `R$ ${totalCusto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('contas-qtd').innerText = `${qtd} lançamento(s) encontrado(s)`;
+            document.getElementById('contas-medio').innerText = `R$ ${medio.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('badge-resultados-tabela').innerText = `${qtd} Registros`;
+
+            paginaContas = 1;
+            renderizarTabelaContas();
+        }
+
+        function renderizarTabelaContas() {
+            const tb = document.getElementById('tabela-contas');
+            tb.innerHTML = '';
+            const inicio = (paginaContas - 1) * itensPorPagina;
+            const fim = inicio + itensPorPagina;
+            const itensExibidos = dadosContasFiltrados.slice(inicio, fim);
+            const total = dadosContasFiltrados.length;
+
+            if (itensExibidos.length === 0) {
+                tb.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#737373]">Nenhum registro encontrado.</td></tr>`;
+                document.getElementById('infoPaginacaoContas').innerText = `Exibindo 0 registros`;
+                document.getElementById('btnPrevContas').disabled = true;
+                document.getElementById('btnNextContas').disabled = true;
+                return;
+            }
+
+            itensExibidos.forEach(r => {
+                tb.innerHTML += `<tr class="hover:bg-[#191919]"><td class="p-3">${r.dataStr}</td><td class="p-3">${r['Tipo'] || '-'}</td><td class="p-3">${r['Conta'] || '-'}</td><td class="p-3 font-medium text-[#E5E5E5]">${r['Descrição'] || '-'}</td><td class="p-3 text-right font-semibold text-[#C27803]">R$ ${(parseFloat(r['Valor']) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>`;
+            });
+
+            document.getElementById('infoPaginacaoContas').innerText = `Exibindo ${Math.min(inicio + 1, total)} até ${Math.min(fim, total)} de ${total} registros`;
+            document.getElementById('btnPrevContas').disabled = paginaContas === 1;
+            document.getElementById('btnNextContas').disabled = fim >= total;
+        }
+
+        function mudarPaginaContas(delta) { paginaContas += delta; renderizarTabelaContas(); }
+    </script>
+</body>
+</html>
